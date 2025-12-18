@@ -179,8 +179,11 @@
       "name": "atlassian",
       "description": "Connect to Atlassian products including Jira and Confluence. Search and create issues, access documentation, manage sprints, and integrate your development workflow with Atlassian's collaboration tools.",
       "category": "productivity",
-      "source": "./external_plugins/atlassian",
-      "homepage": "https://github.com/anthropics/claude-plugins-public/tree/main/external_plugins/atlassian"
+      "source": {
+        "source": "url",
+        "url": "https://github.com/atlassian/atlassian-mcp-server.git"
+      },
+      "homepage": "https://github.com/atlassian/atlassian-mcp-server"
     },
     {
       "name": "laravel-boost",
@@ -248,8 +251,11 @@
       "name": "vercel",
       "description": "Vercel deployment platform integration. Manage deployments, check build status, access logs, configure domains, and control your frontend infrastructure directly from Claude Code.",
       "category": "deployment",
-      "source": "./external_plugins/vercel",
-      "homepage": "https://github.com/anthropics/claude-plugins-public/tree/main/external_plugins/vercel"
+      "source": {
+        "source": "url",
+        "url": "https://github.com/vercel/vercel-deploy-claude-code-plugin.git"
+      },
+      "homepage": "https://github.com/vercel/vercel-deploy-claude-code-plugin"
     },
     {
       "name": "firebase",
