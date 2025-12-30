@@ -53,20 +53,61 @@ Start a Ralph loop in your current session.
 
 **Usage:**
 ```bash
-/ralph-loop "<prompt>" --max-iterations <n> --completion-promise "<text>"
+/ralph-loop "<prompt>" [OPTIONS]
 ```
 
 **Options:**
+- `--name <name>` - Loop name for parallel loops (default: "default")
 - `--max-iterations <n>` - Stop after N iterations (default: unlimited)
 - `--completion-promise <text>` - Phrase that signals completion
 
+**Examples:**
+```bash
+# Basic usage
+/ralph-loop "Build a REST API" --completion-promise "DONE" --max-iterations 50
+
+# Named loop for parallel execution
+/ralph-loop --name api-dev "Build the API" --completion-promise "API_DONE"
+```
+
 ### /cancel-ralph
 
-Cancel the active Ralph loop.
+Cancel active Ralph loop(s).
 
 **Usage:**
 ```bash
-/cancel-ralph
+/cancel-ralph                  # List loops, cancel if only one
+/cancel-ralph <name>           # Cancel specific named loop
+/cancel-ralph --all            # Cancel all active loops
+```
+
+## Parallel Loops
+
+Run multiple Ralph loops simultaneously in different terminal sessions using the `--name` parameter:
+
+```bash
+# Terminal 1: Data review task
+/ralph-loop --name data-review "Review and validate data entries" \
+  --completion-promise "DATA_REVIEW_COMPLETE" --max-iterations 100
+
+# Terminal 2: Chart review task
+/ralph-loop --name chart-review "Review chart formatting" \
+  --completion-promise "CHART_REVIEW_COMPLETE" --max-iterations 100
+```
+
+**How it works:**
+- Each named loop creates its own state file: `.claude/ralph-loop-{name}.local.md`
+- TTY-based session tracking links each terminal to its loop
+- Loops run independently and don't interfere with each other
+- Cancel specific loops by name: `/cancel-ralph data-review`
+
+**Monitoring parallel loops:**
+```bash
+# List all active loops
+ls -la .claude/ralph-loop-*.local.md
+
+# Check specific loop iteration
+grep '^iteration:' .claude/ralph-loop-data-review.local.md
 ```
 
 ## Prompt Writing Best Practices
