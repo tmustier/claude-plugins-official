@@ -174,10 +174,12 @@ if [[ -n "$FROM_FILE" ]]; then
   while IFS= read -r line; do
     if [[ "$line" =~ ^--max-iterations[[:space:]]+([0-9]+) ]]; then
       MAX_ITERATIONS="${BASH_REMATCH[1]}"
-    elif [[ "$line" =~ ^--completion-promise[[:space:]]+[\"\'"]?(.+)[\"\'"]?$ ]]; then
+    elif [[ "$line" =~ ^--completion-promise[[:space:]]+(.*) ]]; then
       COMPLETION_PROMISE="${BASH_REMATCH[1]}"
-      # Remove trailing quote if present
+      # Remove surrounding quotes if present
+      COMPLETION_PROMISE="${COMPLETION_PROMISE#\"}"
       COMPLETION_PROMISE="${COMPLETION_PROMISE%\"}"
+      COMPLETION_PROMISE="${COMPLETION_PROMISE#\'}"
       COMPLETION_PROMISE="${COMPLETION_PROMISE%\'}"
     elif [[ "$line" =~ ^--name[[:space:]]+(.+) ]]; then
       LOOP_NAME=$(echo "${BASH_REMATCH[1]}" | tr -cd 'a-zA-Z0-9-')
@@ -186,8 +188,12 @@ if [[ -n "$FROM_FILE" ]]; then
     fi
   done <<< "$FILE_CONTENT"
 
-  # Join prompt lines
-  PROMPT=$(printf '%s\n' "${PROMPT_LINES[@]}" | sed '/^$/d' | head -c 10000)
+  # Join prompt lines (handle empty array)
+  if [[ ${#PROMPT_LINES[@]} -eq 0 ]]; then
+    PROMPT=""
+  else
+    PROMPT=$(printf '%s\n' "${PROMPT_LINES[@]}" | sed '/^$/d' | head -c 10000)
+  fi
 
   # Clean up temp file
   rm -f "$FROM_FILE" 2>/dev/null || true
