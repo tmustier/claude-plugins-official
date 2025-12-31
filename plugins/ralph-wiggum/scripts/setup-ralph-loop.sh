@@ -11,10 +11,23 @@ PROMPT_PARTS=()
 MAX_ITERATIONS=0
 COMPLETION_PROMISE="null"
 LOOP_NAME="default"
+FROM_FILE=""
 
 # Parse options and positional arguments
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --from-file)
+      if [[ -z "${2:-}" ]]; then
+        echo "❌ Error: --from-file requires a file path" >&2
+        exit 1
+      fi
+      if [[ ! -f "$2" ]]; then
+        echo "❌ Error: File not found: $2" >&2
+        exit 1
+      fi
+      FROM_FILE="$2"
+      shift 2
+      ;;
     -h|--help)
       cat << 'HELP_EOF'
 Ralph Loop - Interactive self-referential development loop
@@ -143,8 +156,42 @@ HELP_EOF
   esac
 done
 
-# Join all prompt parts with spaces
-PROMPT="${PROMPT_PARTS[*]}"
+# Join all prompt parts with spaces (handle empty array with set -u)
+if [[ ${#PROMPT_PARTS[@]} -eq 0 ]]; then
+  PROMPT=""
+else
+  PROMPT="${PROMPT_PARTS[*]}"
+fi
+
+# If --from-file was provided, read prompt from file and parse options from it
+if [[ -n "$FROM_FILE" ]]; then
+  # Read the entire file content
+  FILE_CONTENT=$(cat "$FROM_FILE")
+
+  # Parse the file content for options (lines starting with --)
+  # and collect the rest as the prompt
+  PROMPT_LINES=()
+  while IFS= read -r line; do
+    if [[ "$line" =~ ^--max-iterations[[:space:]]+([0-9]+) ]]; then
+      MAX_ITERATIONS="${BASH_REMATCH[1]}"
+    elif [[ "$line" =~ ^--completion-promise[[:space:]]+[\"\'"]?(.+)[\"\'"]?$ ]]; then
+      COMPLETION_PROMISE="${BASH_REMATCH[1]}"
+      # Remove trailing quote if present
+      COMPLETION_PROMISE="${COMPLETION_PROMISE%\"}"
+      COMPLETION_PROMISE="${COMPLETION_PROMISE%\'}"
+    elif [[ "$line" =~ ^--name[[:space:]]+(.+) ]]; then
+      LOOP_NAME=$(echo "${BASH_REMATCH[1]}" | tr -cd 'a-zA-Z0-9-')
+    else
+      PROMPT_LINES+=("$line")
+    fi
+  done <<< "$FILE_CONTENT"
+
+  # Join prompt lines
+  PROMPT=$(printf '%s\n' "${PROMPT_LINES[@]}" | sed '/^$/d' | head -c 10000)
+
+  # Clean up temp file
+  rm -f "$FROM_FILE" 2>/dev/null || true
+fi
 
 # Validate prompt is non-empty
 if [[ -z "$PROMPT" ]]; then

@@ -1,13 +1,26 @@
 ---
 description: "Start Ralph Wiggum loop in current session"
 argument-hint: "PROMPT [--name NAME] [--max-iterations N] [--completion-promise TEXT]"
-allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralph-loop.sh:*)"]
+allowed-tools: ["Bash(${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralph-loop.sh:*)", "Write(.claude/.ralph-args-temp)"]
 hide-from-slash-command-tool: "true"
 ---
 
 # Ralph Loop Command
 
-Execute the setup script to initialize the Ralph loop:
+For multi-line prompts, first use the Write tool to save arguments to `.claude/.ralph-args-temp`:
+
+The arguments are:
+```
+$ARGUMENTS
+```
+
+Write these to `.claude/.ralph-args-temp`, then execute:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralph-loop.sh" --from-file .claude/.ralph-args-temp
+```
+
+For simple single-line prompts, you can run directly:
 
 ```bash
 "${CLAUDE_PLUGIN_ROOT}/scripts/setup-ralph-loop.sh" $ARGUMENTS
